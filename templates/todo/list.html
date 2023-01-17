@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+<title>{% block 'title' %}Minha lista{% endblock %}</title>
+
+{% block 'content' %}
+
+<section class="vh-100">
+    <div class="container-sm py-5 h-100">
+      <div class="row d-flex justify-content-center align-items-center h-25">
+        <div class="col">
+          <div class="card" id="list1" style="border-radius: .75rem;">
+            <div class="card-body py-4 px-4 px-md-5">
+              
+                <p class="h1 text-center mt-3 mb-4 pb-3 text-primary">
+                    <i class="fas fa-check-square me-1"></i>
+                    <u>My Todo-s</u>
+                </p>
+  
+                <div class="pb-2">
+                    <div class="card">
+                        {% if messages %}
+                        {% for m in messages%}
+                          <div class="alert alert-{{m.tags}} alert-dismissible fade show" role="alert">
+                            {{m}}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                          </div>
+                        {% endfor%}
+                        {% endif %}
+                    <div class="card-body">
+                        <div class="d-flex flex-row align-items-center">
+                            <form class="d-flex gap-4 col-md-12 align-items-center" action="{% url 'criar_item' %}" method="POST">{% csrf_token %}
+                                <input type="text" class="form-control form-control-lg" name="add"                                    placeholder="Adicionar nova...">
+                                <div>
+                                    <button type="submit" class="btn btn-primary">Adicionar</button>
+                                </div>
+                            </form>    
+                        </div>
+                    </div>
+                    </div>
+                </div>
+        
+                <table class="table"> 
+                    <thead>
+                        <tr>
+                            <th scope="col">Titulo</th> 
+                            <th scope="col">Status</th>
+                            <th scope="col">Opções</th> 
+                            <th scope="col">Criado</th> 
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        {% for lista in listas %}
+                            <tr id="{{lista.id}}" class="table align-middle">
+                                <th scope="row">
+                                    <div class="d-flex flex-row align-items-center">
+                                        <div class="title" id="title{{lista.id}}" data-title="{{lista.id}}">{{lista.title}}</div>
+                                        
+                                        <form class="d-none d-flex col-md-6" id="form-title{{lista.id}}" method="GET" style="width:35rem;">
+                                            <input class="form-control" type="text" id="inputText{{lista.id}}" value="{{lista.title}}">
+                                            <button type="submit" class="btn" id="edit{{lista.id}}"><i class="fa fa-edit link-warning"></i></button>
+                                        </form>
+                                    </div>
+                                </th>  
+                                <th scope="row">
+                                    <div class="SelDiv">                    
+                                        <select class="form-select form-select-sm"style="width:auto;" name="status" id="{{lista.id}}">
+                                            {% for st in status_list %}
+                                                <option value="{{st.0}}" {% if lista.como == st.0 %}selected{% endif %}>
+                                                    {{st.1}}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </th> 
+                                <th scope="row">
+                                    <div class="container text-center d-flex flex-row mb-1">
+                                        <div class="row align-items-center">
+                                            <div class="col">
+                                                <a class="text-danger" id="btn-delete" data-delete="{{lista.id}}" data-mdb-toggle="tooltip" title="Deletar nota"><i
+                                                    class="fas fa-trash-alt"></i></a>
+                                            </div>
+                                            <div class="w-100"></div>
+                                        </div>
+                                    </div>
+                                </th> 
+                                <th scope="row">
+                                    <div class="col">
+                                        <a class="text-muted" data-mdb-toggle="tooltip" title="Criado em">
+                                            <p class="small mb-0"><i class="fas fa-info-circle me-2"></i>{{lista.datacriacao}}</p>
+                                        </a>
+                                    </div>
+                                </th>
+                            </tr>
+                        {% endfor %}
+                    </tbody>  
+                </table>
+             
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+{% endblock  %}
+
+{% block scripts %}
+
+<script type="text/javascript">
+    
+    // Muda Nome do Item da Lista
+    $("div.title").click(function () {
+    
+        var data_id = $(this).attr("data-title");
+
+        $("form#form-title" + data_id).removeClass('d-none')
+        $("div#title" + data_id).addClass('d-none')
+
+        $('button#edit' + data_id).on("click", function (e) {
+            e.preventDefault();
+            
+            title = $('input#inputText'+ data_id).val();
+    
+            $.ajax({
+                type: 'GET',
+                url: '{% url "update-item" %}',
+                data: {'data_id': data_id,'title': title,},
+                datatype: "json",
+                success: function (data) {
+                    if (data.status == "update-item") {
+                        $("form#form-title" + data_id).addClass('d-none');
+                        $("div#title" + data_id).removeClass('d-none'); 
+                        $("#title" + data_id).html(data.title); 
+                    }  
+                }
+            }); 
+
+        });
+    });
+
+
+    // Deleta um Item da Lista
+    $("a#btn-delete").on("click", function (e) {
+        e.preventDefault();
+
+        var todo_id = $(this).attr("data-delete");
+
+        $.ajax({
+            type: 'GET',
+            url: '{% url "delete_item" %}',
+            data: { 'todo_id': todo_id },
+            datatype: "json",
+            success: function (data) {
+
+                if (data.status == "delete") {
+                    $("#" + todo_id).fadeOut("slow", function () {
+                        $("#" + todo_id).remove();
+                    });
+                } else {
+                    // faz alguma coisa
+                }
+
+            }
+        });
+    })
+
+    
+    // Muda Status do Item da Lista
+    $("div.SelDiv select").on('change', function () {
+
+        var data_id = this.id;
+        var status_id = $(this).find('option').filter(':selected').val();
+        
+        $.ajax({
+            type: 'GET',
+            url: '{% url "update-status" %}',
+            data: {
+                'data_id': data_id,
+                'status_id': status_id,
+            },
+            datatype: "json",
+
+            success: function (data) {
+                console.log(data)
+            }
+
+        });
+    });
+</script>
+
+{% endblock  %}

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static %}
+
+<title>{% block 'title' %}Todo List{% endblock %}</title>
+
+{% block 'css' %}
+<link href="{% static 'css/css.css' %}" rel="stylesheet">
+{% endblock  %}
+{% block 'content' %}
+<header class="masthead d-flex align-items-center">
+    <div class="container px-4 px-lg-5 text-center">
+        <h1 class="mb-1">Todo List</h1>
+        <a class="btn btn-primary btn-xl" href="{% url 'list' %}">Criar nota</a>
+    </div>
+</header>
+
+{% endblock  %}

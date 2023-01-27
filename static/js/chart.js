@@ -1,4 +1,4 @@
-$("a#btn-delete").on("click", function (e) {
+$(window).on("load", function (e) {
   e.preventDefault();
 
   $.ajax({

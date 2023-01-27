@@ -19,29 +19,20 @@
                 </p>
   
                 <div class="pb-2">
-                    <div class="card">
-                        {% if messages %}
-                        {% for m in messages%}
-                          <div class="alert alert-{{m.tags}} alert-dismissible fade show" role="alert">
-                            {{m}}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                          </div>
-                        {% endfor%}
-                        {% endif %}
+                    <div class="card" id="messages"></div>
                     <div class="card-body">
                         <div class="d-flex flex-row align-items-center">
-                            <form class="d-flex gap-4 col-md-12 align-items-center" action="{% url 'criar_item' %}" method="POST">{% csrf_token %}
-                                <input type="text" class="form-control form-control-lg" name="add"                                    placeholder="Adicionar nova...">
+                            <form id="addnota"class="d-flex gap-4 col-md-12 align-items-center" action="">
+                                <input type="text" class="form-control form-control-lg" name="title"                                    placeholder="Adicionar nova...">
                                 <div>
                                     <button type="submit" class="btn btn-primary">Adicionar</button>
                                 </div>
                             </form>    
                         </div>
                     </div>
-                    </div>
                 </div>
         
-                <table class="table"> 
+                <table id="tablelist" class="table"> 
                     <thead>
                         <tr>
                             <th scope="col">Titulo</th> 
@@ -110,7 +101,81 @@
 {% block scripts %}
 
 <script type="text/javascript">
-    
+    // criar item
+    $("form#addnota").submit(function() {
+        var titleInput = $('input[name="title"]').val().trim();
+
+        if (titleInput) {
+            $.ajax({
+                url: '{% url "criar_item" %}',
+                data: {
+                    'title': titleInput,
+                },
+                dataType: 'json',
+                success: function (data) {
+                    if (data.nota) {
+                    appendToUsrTable(data.nota);
+                    }
+                }
+            });
+        } else {
+            alert("All fields must have a valid value.");
+        }
+        $('form#addUser').trigger("reset");
+        return false;
+    });
+    function appendToUsrTable(nota) {
+        $("#messages").append(`
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            Criado
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        `);
+  
+        $("#tablelist > tbody:last-child").append(`
+        <tr id="${nota.id}" class="table align-middle">
+            <th scope="row">
+                <div class="d-flex flex-row align-items-center">
+                    <div class="title" id="title${nota.id}" data-title="${nota.id}">${nota.title}</div>
+                    
+                    <form class="d-none d-flex col-md-6" id="form-title${nota.id}" method="GET" style="width:35rem;">
+                        <input class="form-control" type="text" id="inputText${nota.id}" value="${nota.title}">
+                        <button type="submit" class="btn" id="edit${nota.id}"><i class="fa fa-edit link-warning"></i></button>
+                    </form>
+                </div>
+            </th>  
+            <th scope="row">
+                <div class="SelDiv">                    
+                    <select class="form-select form-select-sm"style="width:auto;" name="status" id="${nota.id}">
+                        {% for st in status_list %}
+                            <option value="{{st.0}}" {% if nota.como == st.0 %}selected{% endif %}>
+                                {{st.1}}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </th> 
+            <th scope="row">
+                <div class="container text-center d-flex flex-row mb-1">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <a class="text-danger" id="btn-delete" data-delete="${nota.id}" data-mdb-toggle="tooltip" title="Deletar nota"><i
+                                class="fas fa-trash-alt"></i></a>
+                        </div>
+                        <div class="w-100"></div>
+                    </div>
+                </div>
+            </th> 
+            <th scope="row">
+                <div class="col">
+                    <a class="text-muted" data-mdb-toggle="tooltip" title="Criado em">
+                        <p class="small mb-0"><i class="fas fa-info-circle me-2"></i>${nota.datacriacao}</p>
+                    </a>
+                </div>
+            </th>
+        </tr>
+            `);
+    }
     // Muda Nome do Item da Lista
     $("div.title").click(function () {
     

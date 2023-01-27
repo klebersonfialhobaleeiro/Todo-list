@@ -29,15 +29,23 @@ def list(request):
 
 
 def criar_item(request):
-    if request.method == 'POST':
-        usuariolog = User.objects.get(id = request.user.id)
-        add = request.POST.get('add')
-        if not add:
-            messages.error(request, 'Não pode tá vazia')
-        else:
-            TodoList.objects.create(title=add, dono=usuariolog)
-            messages.add_message(request, messages.SUCCESS, 'Tarefa criada')
-        return redirect(reverse('list'))
+    usuariolog = User.objects.get(id = request.user.id)
+    add = request.GET.get('title')
+
+    create = TodoList.objects.create(
+        title=add, 
+        dono=usuariolog
+    )
+    nota = {
+        'id': create.id ,
+        'title':create.title ,
+        'como':create.como ,
+        'datacriacao':create.datacriacao ,
+    }
+
+    data = {'nota':nota}
+
+    return JsonResponse(data)
 
 @login_required(login_url='/login_and_singup')
 def delete_item(request):

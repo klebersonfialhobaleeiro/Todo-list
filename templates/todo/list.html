@@ -119,7 +119,12 @@
                 }
             });
         } else {
-            alert("All fields must have a valid value.");
+            $("#messages").append(`
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    Não pode ser vazia
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `);
         }
         $('form#addUser').trigger("reset");
         return false;

@@ -4,8 +4,9 @@ Fiz um todo list com um sistema de autenticação simples, usei o AJAX e chart.j
 
 ## Funcionalidades
 
-- Sistema de autenticação
+- Sistema de autenticação onde somente o usuário que está autenticado pode fazer o "crud" e ver a dashboard das suas notas.
 - CRUD com AJAX
+- Dashboard com chart 
 - Temas dark e light
 - Lembre-me na página de login 
 
